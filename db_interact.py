@@ -1,13 +1,8 @@
-import mysql.connector
-from local import spw
 from enum import Enum
+import sqlite3
 
-cnx = mysql.connector(user="root", 
-                      password=spw, 
-                      host="localhost", 
-                      database="trpg"
-                      )
-cursor = cnx.cursor()
+dbcon = sqlite3.connect("databases/trpg.db")
+dbcsr = dbcon.cursor()
 
 entry_types = Enum("Entry_Type", ["GENERAL", "LOCATION", "NPC", "QUEST"])
 
@@ -48,7 +43,7 @@ def start_entry(entry_type):
 
 def create_entry(name, description)
     
-    cursor.execute(
+    dbcsr.execute(
         "INSERT INTO Entrys (name, description) VALUES (%s, %s);", 
         (name, description)
     )
