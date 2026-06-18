@@ -8,13 +8,9 @@ entry_types = Enum("Entry_Type", ["GENERAL", "LOCATION", "NPC", "QUEST"])
 
 class Entry:
     
-    def __init__(self, time_of_entry, last_edit, name, description):
-        self.time_of_entry = time_of_entry
-        self.last_edit = last_edit
+    def __init__(self, name, description):
         self.name = name
         self.description = description
-    
-    def add_entry(self, name, description):
                 
         
 class Location(Entry):
@@ -26,19 +22,9 @@ class Location(Entry):
 
 
 class NPC(Entry):
+    
     def __init__(self, time_of_entry, last_edit, name, description):
         super().__init__(time_of_entry, last_edit, name, description)
-
-
-def start_entry(entry_type):
-    if entry_type == Entry_Type.GENERAL:
-        return create_entry()
-    if entry_type == Entry_Type.LOCATION:
-        return create_location()
-    if entry_type == Entry_Type.NPC:
-        return create_npc()
-    if entry_type == Entry_Type.QUEST:
-        return create_quest()
 
 
 def create_entry(name, description)
@@ -47,3 +33,6 @@ def create_entry(name, description)
         "INSERT INTO Entrys (name, description) VALUES (%s, %s);", 
         (name, description)
     )
+
+def assemble_entry(row):
+    entry = Entry(row[0], row[1])
