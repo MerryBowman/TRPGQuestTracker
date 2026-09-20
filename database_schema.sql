@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS npcs (
     name VARCHAR(50) NOT NULL,
     description TEXT,
     location_id INTEGER,
-    status VARCHAR(10) DEFAULT "unknown", -- Add ENUM on Python side
-    relationship VARCHAR(10) DEFAULT "neutral", -- Add ENUM on Python side
+    status VARCHAR(10) DEFAULT "UNKNOWN",
+    pc_relationship VARCHAR(10) DEFAULT "NEUTRAL",
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     deleted_at TEXT DEFAULT "9999-12-31 23:59:59",
@@ -44,9 +44,8 @@ CREATE TABLE IF NOT EXISTS quests (
     id INTEGER PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description TEXT,
-    goals TEXT,
     giver_id INTEGER,
-    status VARCHAR(10) DEFAULT "active", -- Add ENUM on Python side
+    status VARCHAR(10) DEFAULT "ACTIVE",
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     deleted_at TEXT DEFAULT "9999-12-31 23:59:59",
@@ -57,6 +56,25 @@ CREATE TRIGGER IF NOT EXISTS update_quest_timestamp AFTER UPDATE ON quests
 FOR EACH ROW
 BEGIN
     UPDATE quests SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+-- Goals table
+
+CREATE TABLE IF NOT EXISTS goals (
+    id INTEGER PRIMARY KEY,
+    quest_id INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(10) DEFAULT "ACTIVE",
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TEXT DEFAULT "9999-12-31 23:59:59",
+    CONSTRAINT fk_quest_id FOREIGN KEY (quest_id) REFERENCES quests(id)
+);
+
+CREATE TRIGGER IF NOT EXISTS update_goal_timestamp AFTER UPDATE ON goals
+FOR EACH ROW
+BEGIN
+    UPDATE goals SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
 
 -- General Entries table
@@ -145,8 +163,8 @@ CREATE TABLE IF NOT EXISTS npcs (
     name VARCHAR(50) NOT NULL,
     description TEXT,
     location_id INTEGER,
-    status ENUM("alive", "dead", "missing", "unknown") DEFAULT "unknown",
-    relationship ENUM("ally", "friendly", "neutral", "hostile") DEFAULT "neutral",
+    status ENUM("alive", "dead", "unknown") DEFAULT "unknown",
+    pc_relationship ENUM("ally", "friendly", "neutral", "hostile") DEFAULT "neutral",
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
     deleted_at TEXT DEFAULT "9999-12-31 23:59:59",
