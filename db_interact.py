@@ -146,9 +146,9 @@ cnx.commit()
 entry_types = Enum("Entry_Type", ["GENERAL", "LOCATION", "NPC", "QUEST"])
 
 class NPC_Status(Enum):
-    ALIVE = "Alive"
-    DEAD = "Dead"
-    UNKNOWN = "Unknown"
+    ALIVE: str = "Alive"
+    DEAD: str = "Dead"
+    UNKNOWN: str = "Unknown"
 
 class NPC_Relationship(Enum):
     ALLY = "Ally"
@@ -163,26 +163,26 @@ class Quest_Status(Enum):
 
 class Entry:
     
-    def __init__(self, id, name, description, created_at, updated_at, deleted_at):
-        self.id = id
-        self.name = name
+    def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str):
+        self.id: int = id
+        self.name: str = name
         self.description = description
-        self.created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
-        self.updated_at = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
-        self.deleted_at = datetime.strptime(deleted_at, "%Y-%m-%d %H:%M:%S")
+        self.created_at: datetime = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        self.updated_at: datetime = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
+        self.deleted_at: datetime = datetime.strptime(deleted_at, "%Y-%m-%d %H:%M:%S")
 
 class Location(Entry):
 
-    def __init__(self, id, name, description, created_at, updated_at, deleted_at, parent = None):
+    def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str, parent: int = None):
         super().__init__(id, name, description, created_at, updated_at, deleted_at)
-        self.parent = parent
+        self.parent: Location = parent
 
 
 class NPC(Entry):
     
     def __init__(self, id, name, description, created_at, updated_at, deleted_at, location_id, status, pc_relationship):
         super().__init__(id, name, description, created_at, updated_at, deleted_at)
-        self.location_id = location_id
+        self.location = location_id
         self.status = NPC_Status[status].value
         self.relationship = NPC_Relationship[pc_relationship].value
 
@@ -515,7 +515,7 @@ def recap():
             assembled_entry = pull_quest_by_id(entry[1])
         if entry[0] == "goals":
             assembled_entry = pull_goal_by_id(entry[1])
-        elif:
+        else:
             continue
         assembled_entries.append(assembled_entry)
 
@@ -532,19 +532,17 @@ def assemble_entry(row):
     return entry
 
 def assemble_location(row):
-    parent = ""
+    parent_location: Location = None
     if row[3] is not None:
-        csr.execute("SELECT name FROM locations WHERE id = ?;", (row[3],))
-        parent = csr.fetchone()[0]
-    location = Location(row[0], row[1], row[2], row[4], row[5], row[6], parent)
+        parent_location = pull_location_by_id(row[3])
+    location = Location(row[0], row[1], row[2], row[4], row[5], row[6], parent_location)
     return location
 
-def assemble_npc(row):
-    location = ""
+def assemble_npc(row: tuple[int, str, str, int, str, str, str, str, str]):
+    location: Location = None
     if row[3] is not None:
-        csr.execute("SELECT name FROM locations WHERE id = ?;", (row[3],))
-        location = csr.fetchone()[0]
-    npc = NPC(row[0], row[1], row[2], row[6], row[7], row[8], location, row[4], row[5])
+        location = pull_location_by_id(row[3])
+    npc: NPC = NPC(row[0], row[1], row[2], row[6], row[7], row[8], location, row[4], row[5])
     return npc
 
 def assemble_quest(row):
