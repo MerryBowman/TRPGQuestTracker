@@ -151,22 +151,22 @@ class NPC_Status(Enum):
     UNKNOWN: str = "Unknown"
 
 class NPC_Relationship(Enum):
-    ALLY = "Ally"
-    FRIENDLY = "Friendly"
-    NEUTRAL = "Neutral"
-    HOSTILE = "Hostile"
+    ALLY: str = "Ally"
+    FRIENDLY: str = "Friendly"
+    NEUTRAL: str = "Neutral"
+    HOSTILE: str = "Hostile"
 
 class Quest_Status(Enum):
-    ACTIVE = "Active"
-    COMPLETED = "Completed"
-    FAILED = "Failed"
+    ACTIVE: str = "Active"
+    COMPLETED: str = "Completed"
+    FAILED: str = "Failed"
 
 class Entry:
     
     def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str):
         self.id: int = id
         self.name: str = name
-        self.description = description
+        self.description: str = description
         self.created_at: datetime = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
         self.updated_at: datetime = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
         self.deleted_at: datetime = datetime.strptime(deleted_at, "%Y-%m-%d %H:%M:%S")
@@ -180,36 +180,36 @@ class Location(Entry):
 
 class NPC(Entry):
     
-    def __init__(self, id, name, description, created_at, updated_at, deleted_at, location_id, status, pc_relationship):
+    def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str, location, status: NPC_Status, pc_relationship: NPC_Relationship):
         super().__init__(id, name, description, created_at, updated_at, deleted_at)
-        self.location = location_id
+        self.location: Location = location
         self.status = NPC_Status[status].value
         self.relationship = NPC_Relationship[pc_relationship].value
 
 class Quest(Entry):
     
-    def __init__(self, id, name, description, created_at, updated_at, deleted_at, giver, status, goals=[]):
+    def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str, giver: NPC, status: str, goals: list[Goal] = []):
         super().__init__(id, name, description, created_at, updated_at, deleted_at)
-        self.giver = giver
-        self.status = Quest_Status[status].value
-        self.goals = goals
+        self.giver: NPC = giver
+        self.status: Quest_Status = Quest_Status[status].value
+        self.goals: list[Goal] = goals
 
 class Goal:
 
-    def __init__(self, id, description, status, created_at, updated_at, deleted_at):
-        self.id = id
-        self.description = description
-        self.status = Quest_Status[status].value
-        self.created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
-        self.updated_at = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
-        self.deleted_at = datetime.strptime(deleted_at, "%Y-%m-%d %H:%M:%S")
+    def __init__(self, id: int, description: str, status: str, created_at: str, updated_at: str, deleted_at: str):
+        self.id: int = id
+        self.description: str = description
+        self.status: Quest_Status = Quest_Status[status].value
+        self.created_at: datetime = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        self.updated_at: datetime = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
+        self.deleted_at: datetime = datetime.strptime(deleted_at, "%Y-%m-%d %H:%M:%S")
 
 # input functions
 
-def create_general_entry():
+def create_general_entry() -> None:
     
-    name = input("Entry name:\n>")
-    description = input("Entry description:\n>")
+    name: str = input("Entry name:\n>")
+    description: str = input("Entry description:\n>")
 
     try:
         csr.execute(
@@ -225,12 +225,14 @@ def create_general_entry():
 
     print(f"General entry '{name}' created successfully!")
 
-def create_location():
+    return
+
+def create_location() -> None:
     
-    name = input("Location name:\n>")
-    description = input("Location description:\n>")
-    region = input("Location region (leave blank if none):\n>")
-    landmarks = input("Location landmarks (leave blank if none):\n>")
+    name: str = input("Location name:\n>")
+    description: str = input("Location description:\n>")
+    region: str = input("Location region (leave blank if none):\n>")
+    landmarks: str = input("Location landmarks (leave blank if none):\n>")
 
     try:
         csr.execute(
@@ -246,10 +248,12 @@ def create_location():
 
     print(f"Location '{name}' added to notes")
 
-def create_npc():
-    name = input("NPC name:\n>")
-    description = input("NPC description:\n>")
-    location_id = input("NPC location ID (leave blank if none):\n> ")
+    return
+
+def create_npc() -> None:
+    name: str = input("NPC name:\n>")
+    description: str = input("NPC description:\n>")
+    location_id: str = input("NPC location ID (leave blank if none):\n> ")
 
     # NEED TO ADD ABILITY TO LOOK UP LOCATION ID BY NAME, ADD PREVIEW OF MOST RECENT LOCATIONS
 
@@ -279,6 +283,8 @@ def create_npc():
     cnx.commit()
 
     print(f"NPC '{name}' added to notes")
+
+    return
 
 def create_quest():
     name = input("Quest name: ")
@@ -464,7 +470,7 @@ def recap():
         date_entry = csr.fetchone()
         if date_entry is None:
             break
-        formatted_date_entry = convert_sql_date_format_mdy(date_entry[0])
+        formatted_date_entry = convert_sql_date_format_to_mdy(date_entry[0])
         if formatted_date_entry == last_date_entry:
             continue
         last_date_entry = formatted_date_entry
@@ -527,36 +533,31 @@ def recap():
 
 # assembly functions
 
-def assemble_entry(row):
-    entry = Entry(row[0], row[1], row[2], row[3], row[4], row[5])
-    return entry
+def assemble_entry(row: tuple[int, str, str, str, str, str]):
+    return Entry(row[0], row[1], row[2], row[3], row[4], row[5])
 
-def assemble_location(row):
+def assemble_location(row: tuple[int, str, str, int|None, str, str, str]) -> Location:
     parent_location: Location = None
     if row[3] is not None:
-        parent_location = pull_location_by_id(row[3])
-    location = Location(row[0], row[1], row[2], row[4], row[5], row[6], parent_location)
-    return location
+        parent_location: Location = pull_location_by_id(row[3])
+    return Location(row[0], row[1], row[2], row[4], row[5], row[6], parent_location)
 
 def assemble_npc(row: tuple[int, str, str, int, str, str, str, str, str]):
     location: Location = None
     if row[3] is not None:
         location = pull_location_by_id(row[3])
-    npc: NPC = NPC(row[0], row[1], row[2], row[6], row[7], row[8], location, row[4], row[5])
-    return npc
+    return NPC(row[0], row[1], row[2], row[6], row[7], row[8], location, row[4], row[5])
 
-def assemble_quest(row):
-    giver = ""
-    goals = []
-    csr.execute("SELECT description, status FROM goals WHERE quest_id = ?;", (row[0],))
-    goals_data = csr.fetchall()
-    for desc, status in goals_data:
-        goals.append(Goal(desc, status))
-    if row[4] is not None:
-        csr.execute("SELECT name FROM npcs WHERE id = ?;", (row[4],))
-        giver = csr.fetchone()[0]
-    quest = Quest(row[0], row[1], row[2], row[6], row[7], row[8], goals, giver, row[5])
-    return quest
+def assemble_quest(row: tuple[int, str, str, int|None, str, str, str, str]):
+    giver: NPC = None
+    goals: list[Goal] = []
+    csr.execute("SELECT id FROM goals WHERE quest_id = ?;", (row[0],))
+    goals_data: list[tuple[int]] = csr.fetchall()
+    for id in goals_data:
+        goals.append(pull_goal_by_id(id[0]))
+    if row[3] is not None:
+        giver: NPC = pull_npc_by_id(row[3])
+    return Quest(row[0], row[1], row[2], row[6], row[7], row[8], goals, giver, row[5])
 
 def pull_location_by_id(location_id):
     csr.execute("SELECT * FROM locations WHERE id = ?;", (location_id,))
