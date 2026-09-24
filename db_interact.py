@@ -258,13 +258,13 @@ def create_npc() -> None:
     # NEED TO ADD ABILITY TO LOOK UP LOCATION ID BY NAME, ADD PREVIEW OF MOST RECENT LOCATIONS
 
     while True:
-        status = input("NPC status (alive, dead, unknown):\n>").upper()
+        status: str = input("NPC status (alive, dead, unknown):\n>").upper()
         if not isinstance(status, NPC_Status):
             print("Invalid status. Please enter alive, dead, or unknown.")
         break
     
     while True:
-        relationship = input("NPC relationship (ally, friendly, neutral, hostile): ").upper()
+        relationship: str = input("NPC relationship (ally, friendly, neutral, hostile): ").upper()
         if not isinstance(relationship, NPC_Relationship):
             print("Invalid relationship. Please enter ally, friendly, neutral, or hostile.")
         break
@@ -286,16 +286,16 @@ def create_npc() -> None:
 
     return
 
-def create_quest():
-    name = input("Quest name: ")
-    description = input("Quest description: ")
-    goals = input("Quest goals: ")
+def create_quest() -> None:
+    name: str = input("Quest name: ")
+    description: str = input("Quest description: ")
     giver_id = input("Quest giver ID (leave blank if none): ")
+    status: str = "ACTIVE"
 
     try:
         csr.execute(
-            "INSERT INTO quests (name, description, goals, giver_id) VALUES (?, ?, ?, ?);", 
-            (name, description, goals, giver_id if giver_id else None)
+            "INSERT INTO quests (name, description, giver_id, status) VALUES (?, ?, ?, ?);", 
+            (name, description, giver_id if giver_id else None, status)
         )
     except Exception as e:
         print(f"Error occurred while creating quest: {e}")
@@ -305,29 +305,29 @@ def create_quest():
     cnx.commit()
 
     print(f"Quest '{name}' added to log")
-    add_goals = input("Would you like to add goals to this quest? (y/n): ").lower()
+    add_goals = input("Would you like to add goals to this quest? (y/n):\n>").lower()
     if add_goals == "y":
         create_goal(csr.lastrowid)
 
-def create_goal(quest_id = None):
+def create_goal(quest_id: int = None) -> None|callable[int]:
 
     if quest_id is None:
 
         csr.execute("SELECT id, name, SUBSTR(description, 1, 25) FROM quests ORDER BY MAX(created_at, updated_at) DESC;")
 
         while True:
-            recent_quests = csr.fetchmany(5)
+            recent_quests: list[tuple[int, str, str]] = csr.fetchmany(5)
 
             print("Recent quests:")
             for quest in recent_quests:
                 print(f"ID: {quest[0]} | Name: {quest[1]} | Preview: \"{quest[2]}\" [ ... ]")
-            more_quests = input("Would you like to see more quests? (y/n): ").lower()
+            more_quests: str = input("Would you like to see more quests? (y/n):\n>").lower()
             if more_quests != "y":
                 break
 
         while True:
             try:
-                quest_id = int(input("Enter the ID of the quest this goal belongs to: "))
+                quest_id: int = int(input("Enter the ID of the quest this goal belongs to: "))
                 csr.execute("SELECT id FROM quests WHERE id = ?;", (quest_id,))
                 if csr.fetchone() is None:
                     print("Invalid quest ID. Please try again.")
@@ -336,8 +336,8 @@ def create_goal(quest_id = None):
             except ValueError:
                 print("Please enter a valid integer for the quest ID.")
 
-    description = input("Goal description: ")
-    status = input("Goal status (active, completed, failed): ").upper()
+    description: str = input("Goal description: ")
+    status: str = input("Goal status (active, completed, failed): ").upper()
 
     try:
         csr.execute(
@@ -353,23 +353,30 @@ def create_goal(quest_id = None):
 
     print(f"Goal '{description}' added to log")
 
+    create_new_goal:str = ("Would you like to add another goal to this quest? (y/n)\n>").lower()
+
+    if create_new_goal == "y":
+        return create_goal(quest_id)
+
+    return
+
 # view functions
 
-def convert_sql_date_format_to_mdy(sql_date):
+def convert_sql_date_format_to_mdy(sql_date) -> str:
 
     # convert date from SQL table to a more readable format (JAN 01 2026)
 
-    dt = datetime.strptime(sql_date, "%Y-%m-%d %H:%M:%S")
+    dt: datetime = datetime.strptime(sql_date, "%Y-%m-%d %H:%M:%S")
     return dt.strftime("%b %d %Y")
 
-def convert_dmy_to_sql_date_format(date_str):
+def convert_dmy_to_sql_date_format(date_str) -> str:
 
     # convert date from JAN 01 2026 to SQL table format (2026-01-01)
 
     dt = datetime.strptime(date_str, "%b %d %Y")
-    return dt.strftime("%Y-%m-%d")
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-def view_entry():
+def view_entry() -> None:
 
     # pull the 10 most recent entries from all tables, ordered by latest timestamp
     
