@@ -186,14 +186,6 @@ class NPC(Entry):
         self.status = NPC_Status[status].value
         self.relationship = NPC_Relationship[pc_relationship].value
 
-class Quest(Entry):
-    
-    def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str, giver: NPC, status: str, goals: list[Goal] = []):
-        super().__init__(id, name, description, created_at, updated_at, deleted_at)
-        self.giver: NPC = giver
-        self.status: Quest_Status = Quest_Status[status].value
-        self.goals: list[Goal] = goals
-
 class Goal:
 
     def __init__(self, id: int, description: str, status: str, created_at: str, updated_at: str, deleted_at: str):
@@ -203,6 +195,15 @@ class Goal:
         self.created_at: datetime = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
         self.updated_at: datetime = datetime.strptime(updated_at, "%Y-%m-%d %H:%M:%S")
         self.deleted_at: datetime = datetime.strptime(deleted_at, "%Y-%m-%d %H:%M:%S")
+
+class Quest(Entry):
+    
+    def __init__(self, id: int, name: str, description: str, created_at: str, updated_at: str, deleted_at: str, giver: NPC, status: str, goals: list[Goal] = []):
+        super().__init__(id, name, description, created_at, updated_at, deleted_at)
+        self.giver: NPC = giver
+        self.status: Quest_Status = Quest_Status[status].value
+        self.goals: list[Goal] = goals
+
 
 # input functions
 
@@ -309,7 +310,7 @@ def create_quest() -> None:
     if add_goals == "y":
         create_goal(csr.lastrowid)
 
-def create_goal(quest_id: int = None) -> None|callable[int]:
+def create_goal(quest_id: int = None):
 
     if quest_id is None:
 
@@ -435,6 +436,10 @@ def view_entry() -> None:
         if entry[0] == "npcs":
             print(f"NPC: {entry[1]} | Preview: \"{entry[2]}\" [ ... ] | Status: {entry[4]}")
 
+def recap_entry(entry: Entry) -> str:
+
+    
+
 def recap():
 
     # pull all entries from all tables, ordered by the latest timestamp
@@ -531,6 +536,8 @@ def recap():
         else:
             continue
         assembled_entries.append(assembled_entry)
+
+
 
 
 

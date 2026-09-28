@@ -1,4 +1,4 @@
-from db_interact import create_general_entry, create_location, create_npc, create_quest, create_goal, view_entry, close_program
+from db_interact import create_general_entry, create_location, create_npc, create_quest, create_goal, view_entry, close_program, recap
 import sys
 
 def main_menu():
@@ -7,7 +7,7 @@ def main_menu():
         match input("Select: "):
             case "1": return create_entry()
             case "2": return view_entry()
-            case "3": print("Coming soon!")  # recap()
+            case "3": return recap()
             case "4": return close_program()
             case _: print("Invalid choice")
 
